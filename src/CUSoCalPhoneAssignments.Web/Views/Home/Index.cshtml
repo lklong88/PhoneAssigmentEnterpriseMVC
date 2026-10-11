@@ -1,0 +1,37 @@
+@model DashboardViewModel
+@{ ViewData["Title"] = "Team phone assignments"; }
+<div class="hero"><span class="eyebrow">TEAM OPERATIONS / DIRECTORY</span><h1>Phone number assignments</h1>
+<p>Manage phone assignments with built-in validation. Each number can belong to only one team member.</p></div>
+<div class="stats" aria-label="Assignment summary">
+    <div class="stat"><span>Team members</span><strong>@Model.Rows.Count</strong></div>
+    <div class="stat"><span>Assigned numbers</span><strong>@Model.AssignedCount</strong></div>
+    <div class="stat"><span>Available numbers</span><strong>@(Model.TotalNumbers - Model.AssignedCount)</strong></div>
+</div>
+@if (TempData["Success"] is string success) { <div class="notice success" role="status">@success</div> }
+@if (TempData["Error"] is string error) { <div class="notice error" role="alert">@error</div> }
+<section class="panel"><div class="panel-heading"><div><h2>Team directory</h2><p>Choose an available number to assign or change an assignment.</p></div><span class="hint">@Model.Rows.Count team members</span></div>
+<div class="table-wrap"><table><thead><tr><th>Team member</th><th>Current number</th><th>Assign / change</th><th>Remove</th></tr></thead><tbody>
+@foreach (var row in Model.Rows)
+{
+<tr><td><strong>@row.FullName</strong><small>Member ID: @row.MemberId</small></td>
+<td>@if (row.CurrentPhone is null) { <span class="pill muted">Unassigned</span> } else { <span class="pill active">@row.CurrentPhone</span> }</td>
+<td><form asp-controller="Home" asp-action="Assign" method="post" asp-antiforgery="true" class="assign-form">
+<input type="hidden" name="memberId" value="@row.MemberId" />
+<label class="sr-only" for="phone-@row.MemberId">Phone number for @row.FullName</label>
+<select name="phoneNumberId" id="phone-@row.MemberId" required><option value="">Select a number</option>
+@foreach (var phone in row.Choices)
+{
+    if (phone.Id == row.CurrentPhoneId) { <option value="@phone.Id" selected>@phone.Number (current)</option> }
+    else { <option value="@phone.Id">@phone.Number</option> }
+}
+</select><button class="button primary" type="submit">Save</button></form></td>
+<td><form asp-controller="Home" asp-action="Remove" method="post" asp-antiforgery="true" onsubmit="return confirm('Remove this phone assignment?');">
+<input type="hidden" name="memberId" value="@row.MemberId" /><button class="button outline" type="submit" disabled="@(row.CurrentPhoneId is null)">Remove</button></form></td></tr>
+}
+</tbody></table></div></section>
+<section class="panel activity"><div class="panel-heading"><div><h2>Recent activity</h2><p>Illustrative assignment change history (UTC).</p></div></div>
+@if (Model.RecentActivity.Count == 0) { <p class="empty">No assignment changes have been recorded yet.</p> }
+else { <div class="table-wrap"><table><thead><tr><th>Time (UTC)</th><th>Action</th><th>Member ID</th><th>Previous ID</th><th>New ID</th><th>Actor</th></tr></thead><tbody>
+@foreach (var audit in Model.RecentActivity) { <tr><td>@audit.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss")</td><td>@audit.Action</td><td>@audit.TeamMemberId</td><td>@(audit.PreviousPhoneNumberId?.ToString() ?? "—")</td><td>@(audit.NewPhoneNumberId?.ToString() ?? "—")</td><td>@audit.Actor</td></tr> }
+</tbody></table></div>}
+</section><p class="disclaimer">This is a single-instance JSON-backed MVP. Without persistent storage, changes may reset when a cloud service restarts.</p>

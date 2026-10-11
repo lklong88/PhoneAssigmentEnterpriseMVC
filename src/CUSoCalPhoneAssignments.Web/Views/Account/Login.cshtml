@@ -1,0 +1,7 @@
+@{ ViewData["Title"] = "Demo access"; }
+<div class="login-wrap"><section class="panel login-panel"><span class="eyebrow">PROTECTED DEMONSTRATION</span><h1>Enter demo access password</h1>
+<p>This exercise uses fictional team members and phone numbers. Enter the password provided by the developer.</p>
+<form asp-controller="Account" asp-action="Login" method="post" asp-antiforgery="true">
+<div asp-validation-summary="All" class="validation" role="alert"></div>
+<label for="password">Demo password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus />
+<button type="submit" class="button primary">Sign in</button></form></section></div>

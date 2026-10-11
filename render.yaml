@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: cusocal-phone-assignments
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DEMO_PASSWORD
+        sync: false
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
